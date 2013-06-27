@@ -30,8 +30,7 @@ DEFAULT_PAGINATION = 10
 
 THEME = 'pelican-svbtle'
 
-# AUTHOR_BIO = 'Python, Django, Flask Developer'
-AUTHOR_BIO = 'Site under construction'
+AUTHOR_BIO = 'Python, Django, Flask Developer'
 SUMMARY_MAX_LENGTH = 100
 
 FILES_TO_COPY = (('CNAME', 'CNAME'),)
