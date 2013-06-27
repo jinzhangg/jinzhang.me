@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/style.css">
+	<link rel="stylesheet" type="text/css" href="http://jinzhang.me/theme/css/style.css">
 	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
 	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
-	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/pygments.css">
+	<link rel="stylesheet" type="text/css" href="http://jinzhang.me/theme/css/pygments.css">
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata|Roboto:400,300' rel='stylesheet' type='text/css'>
 
-	<link href="http://localhost:8000/" type="application/atom+xml" rel="alternate" title="Jin Zhang ATOM Feed" />
+	<link href="http://jinzhang.me/" type="application/atom+xml" rel="alternate" title="Jin Zhang ATOM Feed" />
 	
 	
 			<title>Jin Zhang</title>
@@ -16,16 +16,16 @@
 <body>
 	<section id="sidebar">
 		<figure id="user_logo">
-            <a href="http://localhost:8000"><div class="logo">&nbsp;</div></a>
+            <a href="http://jinzhang.me"><div class="logo">&nbsp;</div></a>
 		</figure>
 
 		<div class="user_meta">
-            <h1 id="user"><a href="http://localhost:8000" class="">Jin Zhang</a></h1>
+            <h1 id="user"><a href="http://jinzhang.me" class="">Jin Zhang</a></h1>
 			<h2></h2>
 						<p class="bio">Python, Django, Flask Developer</p>
 						<ul>
-																			<li><a href="http://localhost:8000/pages/about.html">About</a></li>
-											<li><a href="http://localhost:8000/pages/contact.html">Contact</a></li>
+																			<li><a href="http://jinzhang.me/pages/about.html">About</a></li>
+											<li><a href="http://jinzhang.me/pages/contact.html">Contact</a></li>
 																		<li><a href="http://github.com/jinzhangg">Github</a></li>
 							</ul>
 		</div>
@@ -42,7 +42,7 @@
 	</header>
 	<article>
 		<h1 id="title">
-			<a href="http://localhost:8000/posts/2013/deploying-django-on-nginx-and-uwsgi/" rel="bookmark"
+			<a href="http://jinzhang.me/posts/2013/deploying-django-on-nginx-and-uwsgi/" rel="bookmark"
 				title="Permalink to Deploying Django on Nginx and uWSGI">Deploying Django on Nginx and uWSGI</a>
 		</h1>
 		<p>Nginx and uWSGI has been growing in popularity in the Django community due to <a class="reference external" href="http://nichol.as/benchmark-of-python-web-servers">benchmarks</a> showing them to be faster then the standard Apache or Gunicorn setup. I recently went through the process of setting up a fresh VPS with this setup and decided to document my process here.</p>
@@ -170,9 +170,22 @@
 	</article>
 
 	<footer>
-		<a href="http://localhost:8000/" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+		<a href="http://jinzhang.me/" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
 	</footer>
 
+		<div id="comments">
+		<h2>Comments</h2>
+		<div id="disqus_thread"></div>
+		<script type="text/javascript">
+			var disqus_identifier = "posts/2013/deploying-django-on-nginx-and-uwsgi/";
+			(function() {
+				var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+				dsq.src = 'http://jinzhang.disqus.com/embed.js';
+				(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+			})();
+		</script>
+		<noscript>Please enable JavaScript to view <a href="http://disqus.com/?ref_noscript">comments</a>.</noscript>
+	</div>
 	
 	</section>
 
