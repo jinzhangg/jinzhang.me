@@ -11,5 +11,4 @@ Skills
 ------
 Python Django Flask HTML LESS CSS Javascript Linux Git SQL
 
-Project
--------
+
