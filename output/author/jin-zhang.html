@@ -31,7 +31,6 @@
 		</div>
 		<footer>
 			<address>
-				Powered by <a href="http://getpelican.com">Pelican</a>.
 			</address>
 		</footer>
 	</section>
@@ -55,11 +54,32 @@
 		<ol>
 							<li>
 					<h1 class="title">
+						<a href="http://localhost:8000/posts/2013/deploying-django-on-nginx-and-uwsgi/" rel="bookmark" title="Permalink to Deploying Django on Nginx and uWSGI">Deploying Django on Nginx and uWSGI</a>
+					</h1>
+					<abbr class="published" title="2013-04-07T00:00:00">Sun 07 April 2013</abbr>
+				<div class="entry-content"> <p>Nginx and uWSGI has been growing in popularity in the Django community due to <a class="reference external" href="http://nichol.as/benchmark-of-python-web-servers">benchmarks</a> showing them to be faster then the standard Apache or Gunicorn setup. I recently went through the process of setting up a fresh VPS with this setup and decided to document my process here.</p>
+<p>I will be using Ubuntu 12.04 x64 Server edition. First let's install the packages we will need for this project.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">upgrade</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span> <span class="n">python</span><span class="o">-</span><span class="n">dev</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">pip</span> <span class="n">git</span>
+<span class="c"># Required for uWSGI</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get ...</span></pre></div> </div>
+				</li>
+							<li>
+					<h1 class="title">
 						<a href="http://localhost:8000/posts/2013/installing-django-on-heroku-with-postgresql/" rel="bookmark" title="Permalink to Installing Django on Heroku with Postgresql">Installing Django on Heroku with Postgresql</a>
 					</h1>
 					<abbr class="published" title="2013-04-06T00:00:00">Sat 06 April 2013</abbr>
 				<div class="entry-content"> <p>We will set up a basic Django site on the popular hosting platform <a class="reference external" href="http://heroku.com">Heroku</a>. The main benefit of Heroku is allowing developers to focus on writing code that differeniates their product and leaving the system administrator tasks to Heroku. They offer a free plan which is sufficient for small projects and personal blogs. The downside is that they do not allow custom domains under the free plan, instead you will be given a subdomain under heroku.com.</p>
 <p>The following tutorial assumes you are running Linux Ubuntu or derivatives of it. First sign up for a free <a class="reference external" href="http://heroku.com">Heroku</a> account and install ...</p> </div>
+				</li>
+							<li>
+					<h1 class="title">
+						<a href="http://localhost:8000/posts/2013/sockjs-redis-nodejs-tutorial/" rel="bookmark" title="Permalink to SockJS, Redis, Node.js Tutorial">SockJS, Redis, Node.js Tutorial</a>
+					</h1>
+					<abbr class="published" title="2013-04-18T00:00:00">Thu 18 April 2013</abbr>
+				<div class="entry-content"> <p>I became interested in real-time web applications when I saw an excellent <a class="reference external" href="http://pyvideo.org/video/1798/make-more-responsive-web-applications-with-socket">PyCon video</a> on Socket.io by Luke Sneeringer. I decided to explore the subject and was disappointed to find little to none easy to follow tutorials available on the subject. This is not surprising given that WebSockets is still in its early stages. There are still issues dealing with proper browser support for the WebSockets standard. Libraries such as socket.io and SockJS aim to fix this problem by falling back on less optimal but more widely support methods to mimic two way communication for example by using ...</p> </div>
 				</li>
 					</ol>
 	</dl>

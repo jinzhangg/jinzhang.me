@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata|Roboto:400,300' rel='stylesheet' type='text/css'>
+
+	<link href="http://localhost:8000/" type="application/atom+xml" rel="alternate" title="Jin Zhang ATOM Feed" />
+	
+	
+			<title>Jin Zhang</title>
+		<meta charset="utf-8" />
+	</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="http://localhost:8000"><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="http://localhost:8000" class="">Jin Zhang</a></h1>
+			<h2></h2>
+						<p class="bio">Site under construction</p>
+						<ul>
+																			<li><a href="http://localhost:8000/pages/about.html">About</a></li>
+											<li><a href="http://localhost:8000/pages/contact.html">Contact</a></li>
+																		<li><a href="http://github.com/jinzhangg">Github</a></li>
+							</ul>
+		</div>
+		<footer>
+			<address>
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+			<header>
+		<h1>Jin Zhang's blog</h1>
+		<h3>Posted Thu 18 April 2013</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="http://localhost:8000/posts/2013/sockjs-redis-nodejs-tutorial/" rel="bookmark"
+				title="Permalink to SockJS, Redis, Node.js Tutorial">SockJS, Redis, Node.js Tutorial</a>
+		</h1>
+		<p>I became interested in real-time web applications when I saw an excellent <a class="reference external" href="http://pyvideo.org/video/1798/make-more-responsive-web-applications-with-socket">PyCon video</a> on Socket.io by Luke Sneeringer. I decided to explore the subject and was disappointed to find little to none easy to follow tutorials available on the subject. This is not surprising given that WebSockets is still in its early stages. There are still issues dealing with proper browser support for the WebSockets standard. Libraries such as socket.io and SockJS aim to fix this problem by falling back on less optimal but more widely support methods to mimic two way communication for example by using Flash or long polling and others.</p>
+<p>In this tutorial, I will describe how to architect a real-time chat web application using SockJS, Redis, and node.js.</p>
+<p>Why use SockJS over socket.io?
+Socket.io is certainly the more popular choice with 8k stars on Github compared to 1.2k for SockJS. The reader can investigate both frameworks and decide for himself which to use but during my research here are the main reasons I chose SockJS over socket.io:</p>
+<blockquote>
+<ol class="arabic simple">
+<li><a class="reference external" href="https://groups.google.com/forum/#!msg/sockjs/lgzxVnlth54/NbQKNEAzB5cJ">Discussion</a> from one of the main SockJS contributors comparing the two frameworks.</li>
+<li><a class="reference external" href="http://blog.pythonanywhere.com/27/">PythonAnywhere</a> blog post about benchmarking between the two libraries.</li>
+<li>This is related to the Python gevent-socketio library. Since I'm a Python user, this was the implementation I would use if I selected socketio. <a class="reference external" href="https://groups.google.com/d/msg/gevent-socketio/lHhaUZu7tTo/ZRBcohD9A7gJ">Mailing list</a> on April 15, 2013 discussing a possible memory leak which author acknowledges.</li>
+</ol>
+</blockquote>
+<p>We will be using the <a class="reference external" href="http://expressjs.com/">Express</a> microframework as a layer over Node. Express provides some background lifting which will help us write a typical web application easier. I am only using Express in order to keep this tutorial as simple as possible. In a production setting, it is a common idea to use the web framework of your choice (Django, Flask, Rails, etc.) to handle the non-websockets section of your website and only use node.js with SockJS as necessary to provide real time functionality.</p>
+<p>We will be extending one of the official SockJS chat server examples to use the Redis pub/sub system which will be closer to a real deployment situation. The pub/sub system is used to relay messages between the server and clients.</p>
+<p>I will be using a Ubuntu 12.04 server from <a class="reference external" href="https://www.digitalocean.com/?refcode=34ed21971862">DigitalOcean</a>. On a fresh machine do the following:</p>
+<div class="highlight"><pre><span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">apt</span><span class="o">-</span><span class="nx">get</span> <span class="nx">update</span>
+<span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">apt</span><span class="o">-</span><span class="nx">get</span> <span class="nx">install</span> <span class="nx">build</span><span class="o">-</span><span class="nx">essential</span>
+</pre></div>
+<p>Install packages we will be using:</p>
+<div class="highlight"><pre><span class="err">#</span> <span class="nx">Install</span> <span class="kr">package</span> <span class="nx">required</span> <span class="nx">to</span> <span class="nx">use</span> <span class="nx">add</span><span class="o">-</span><span class="nx">apt</span><span class="o">-</span><span class="nx">repository</span>
+<span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">apt</span><span class="o">-</span><span class="nx">get</span> <span class="nx">install</span> <span class="nx">python</span><span class="o">-</span><span class="nx">software</span><span class="o">-</span><span class="nx">properties</span>
+<span class="err">#</span> <span class="nx">Node</span><span class="p">.</span><span class="nx">js</span> <span class="mf">0.10</span><span class="p">.</span><span class="mi">4</span>
+<span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">add</span><span class="o">-</span><span class="nx">apt</span><span class="o">-</span><span class="nx">repository</span> <span class="nx">ppa</span><span class="o">:</span><span class="nx">chris</span><span class="o">-</span><span class="nx">lea</span><span class="o">/</span><span class="nx">node</span><span class="p">.</span><span class="nx">js</span>
+<span class="err">#</span> <span class="nx">Redis</span><span class="o">-</span><span class="nx">server</span> <span class="mf">2.6</span><span class="p">.</span><span class="mi">12</span>
+<span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">add</span><span class="o">-</span><span class="nx">apt</span><span class="o">-</span><span class="nx">repository</span> <span class="nx">ppa</span><span class="o">:</span><span class="nx">chris</span><span class="o">-</span><span class="nx">lea</span><span class="o">/</span><span class="nx">redis</span><span class="o">-</span><span class="nx">server</span>
+<span class="err">#</span> <span class="nx">Update</span> <span class="nx">apt</span><span class="o">-</span><span class="nx">get</span>
+<span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">apt</span><span class="o">-</span><span class="nx">get</span> <span class="nx">update</span>
+<span class="err">#</span> <span class="nx">Now</span> <span class="nx">install</span> <span class="nx">our</span> <span class="nx">packages</span>
+<span class="nx">$</span> <span class="nx">sudo</span> <span class="nx">apt</span><span class="o">-</span><span class="nx">get</span> <span class="nx">install</span> <span class="nx">nodejs</span> <span class="nx">redis</span><span class="o">-</span><span class="nx">server</span>
+</pre></div>
+<p>Create a directory called <code>sockjs-tutorial</code> to hold our project. Inside the directory create a file called <code>package.json</code>. This is a node.js specific file containing details about which package we will be using.</p>
+<div class="highlight"><pre><span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;sockjs-express&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;version&quot;</span><span class="o">:</span> <span class="s2">&quot;0.0.0-unreleasable&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;dependencies&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;express&quot;</span><span class="o">:</span> <span class="s2">&quot;~3*&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sockjs&quot;</span><span class="o">:</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hiredis&quot;</span><span class="o">:</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;redis&quot;</span><span class="o">:</span> <span class="s2">&quot;*&quot;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>Now we can install them using this command: <code>$ npm install</code></p>
+<p>Next create a file called server.js which will contain our node.js server code.
+Inside the file, declare which packages we will be using:</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">sockjs</span>  <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;sockjs&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">http</span>    <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">redis</span>   <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;redis&#39;</span><span class="p">);</span>
+</pre></div>
+<p>Create one publisher Redis client where we will push all user messages to.</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">publisher</span> <span class="o">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">createClient</span><span class="p">();</span>
+</pre></div>
+<p>Create the Sockjs server</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">sockjs_opts</span> <span class="o">=</span> <span class="p">{</span><span class="nx">sockjs_url</span><span class="o">:</span> <span class="s2">&quot;http://cdn.sockjs.org/sockjs-0.3.min.js&quot;</span><span class="p">};</span>
+<span class="kd">var</span> <span class="nx">sockjs_chat</span> <span class="o">=</span> <span class="nx">sockjs</span><span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="nx">sockjs_opts</span><span class="p">);</span>
+</pre></div>
+<p>Next is where the real work happens.</p>
+<div class="highlight"><pre><span class="nx">sockjs_chat</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;connection&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">conn</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">browser</span> <span class="o">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">createClient</span><span class="p">();</span>
+    <span class="nx">browser</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">&#39;chat_channel&#39;</span><span class="p">);</span>
+
+    <span class="c1">// When we see a message on chat_channel, send it to the browser</span>
+    <span class="nx">browser</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">channel</span><span class="p">,</span> <span class="nx">message</span><span class="p">){</span>
+        <span class="nx">conn</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="c1">// When we receive a message from browser, send it to be published</span>
+    <span class="nx">conn</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">publisher</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="s1">&#39;chat_channel&#39;</span><span class="p">,</span> <span class="nx">message</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">});</span>
+</pre></div>
+<p>Node.js is based on event programming meaning certain actions will emit an event when they trigger. One of the events is called <code>connection</code>. This will trigger when a browser client makes the initial connection to our node.js server. When this event triggers, we want to execute the anonymous function inside giving us a handle to the connection object called <code>conn</code>.</p>
+<p>When the browser client connects, we want to create a new Redis client which will subscribe to our publisher we created earlier using the channel <code>chat_channel</code>.</p>
+<div class="highlight"><pre><span class="nx">browser</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">channel</span><span class="p">,</span> <span class="nx">message</span><span class="p">){</span>
+    <span class="nx">conn</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+<p>This part of the code is the Redis subscriber client. When the channel we're subscribed to has a new message event, we want to grab that message and send it back to the browser using the SockJS <code>conn</code> object.</p>
+<div class="highlight"><pre><span class="nx">conn</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">publisher</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="s1">&#39;chat_channel&#39;</span><span class="p">,</span> <span class="nx">message</span><span class="p">);</span>
+    <span class="p">});</span>
+</pre></div>
+<p>Now we're coding on the connection object and when the connection receives data from the browser client, we're going to publish it to our Redis publisher on the channel <code>chat_channel</code>. When we publish it to the channel, all current subscribers to that channel will trigger their <code>on(&quot;message&quot;)</code> event. In our code, we want that event to also send a message to browser containing the message.</p>
+<p>The last part of our code simply contains the Express and node.js framework boilerplate code which we need to serve a HTML file.</p>
+<div class="highlight"><pre><span class="c1">// Express server</span>
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="nx">app</span><span class="p">);</span>
+
+<span class="nx">sockjs_chat</span><span class="p">.</span><span class="nx">installHandlers</span><span class="p">(</span><span class="nx">server</span><span class="p">,</span> <span class="p">{</span><span class="nx">prefix</span><span class="o">:</span><span class="s1">&#39;/chat&#39;</span><span class="p">});</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39; [*] Listening on 0.0.0.0:9001&#39;</span> <span class="p">);</span>
+<span class="nx">server</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mi">9001</span><span class="p">,</span> <span class="s1">&#39;0.0.0.0&#39;</span><span class="p">);</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">sendfile</span><span class="p">(</span><span class="nx">__dirname</span> <span class="o">+</span> <span class="s1">&#39;/index.html&#39;</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+<p>The one SockJS part in there is the <code>sockjs_chat.installHandlers</code> code. We are simply binding our SockJS code to the server using the prefix <code>/chat</code>. We will need to use this prefix in our browser client javascript code which we will write next. The final server.js file should look like below:</p>
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">express</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;express&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">sockjs</span>  <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;sockjs&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">http</span>    <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">redis</span>   <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;redis&#39;</span><span class="p">);</span>
+
+
+<span class="c1">// Redis publisher</span>
+<span class="kd">var</span> <span class="nx">publisher</span> <span class="o">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">createClient</span><span class="p">();</span>
+
+<span class="c1">// Sockjs server</span>
+<span class="kd">var</span> <span class="nx">sockjs_opts</span> <span class="o">=</span> <span class="p">{</span><span class="nx">sockjs_url</span><span class="o">:</span> <span class="s2">&quot;http://cdn.sockjs.org/sockjs-0.3.min.js&quot;</span><span class="p">};</span>
+<span class="kd">var</span> <span class="nx">sockjs_chat</span> <span class="o">=</span> <span class="nx">sockjs</span><span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="nx">sockjs_opts</span><span class="p">);</span>
+<span class="nx">sockjs_chat</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;connection&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">conn</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">browser</span> <span class="o">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">createClient</span><span class="p">();</span>
+    <span class="nx">browser</span><span class="p">.</span><span class="nx">subscribe</span><span class="p">(</span><span class="s1">&#39;chat_channel&#39;</span><span class="p">);</span>
+
+    <span class="c1">// When we see a message on chat_channel, send it to the browser</span>
+    <span class="nx">browser</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">&quot;message&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">channel</span><span class="p">,</span> <span class="nx">message</span><span class="p">){</span>
+        <span class="nx">conn</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="nx">message</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="c1">// When we receive a message from browser, send it to be published</span>
+    <span class="nx">conn</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">message</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">publisher</span><span class="p">.</span><span class="nx">publish</span><span class="p">(</span><span class="s1">&#39;chat_channel&#39;</span><span class="p">,</span> <span class="nx">message</span><span class="p">);</span>
+    <span class="p">});</span>
+<span class="p">});</span>
+
+<span class="c1">// Express server</span>
+<span class="kd">var</span> <span class="nx">app</span> <span class="o">=</span> <span class="nx">express</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">createServer</span><span class="p">(</span><span class="nx">app</span><span class="p">);</span>
+
+<span class="nx">sockjs_chat</span><span class="p">.</span><span class="nx">installHandlers</span><span class="p">(</span><span class="nx">server</span><span class="p">,</span> <span class="p">{</span><span class="nx">prefix</span><span class="o">:</span><span class="s1">&#39;/chat&#39;</span><span class="p">});</span>
+
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39; [*] Listening on 0.0.0.0:9001&#39;</span> <span class="p">);</span>
+<span class="nx">server</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="mi">9001</span><span class="p">,</span> <span class="s1">&#39;0.0.0.0&#39;</span><span class="p">);</span>
+
+<span class="nx">app</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">res</span><span class="p">.</span><span class="nx">sendfile</span><span class="p">(</span><span class="nx">__dirname</span> <span class="o">+</span> <span class="s1">&#39;/index.html&#39;</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+<p>Now create a file called index.html and copy-paste the following code:</p>
+<div class="highlight"><pre><span class="cp">&lt;!doctype html&gt;</span>
+<span class="nt">&lt;html&gt;&lt;head&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">&quot;http://cdn.sockjs.org/sockjs-0.3.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;style&gt;</span>
+        <span class="nc">.box</span> <span class="p">{</span>
+            <span class="k">width</span><span class="o">:</span> <span class="m">300px</span><span class="p">;</span>
+            <span class="k">float</span><span class="o">:</span> <span class="k">left</span><span class="p">;</span>
+            <span class="k">margin</span><span class="o">:</span> <span class="m">0</span> <span class="m">20px</span> <span class="m">0</span> <span class="m">20px</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nc">.box</span> <span class="nt">div</span><span class="o">,</span> <span class="nc">.box</span> <span class="nt">input</span> <span class="p">{</span>
+            <span class="k">border</span><span class="o">:</span> <span class="m">1px</span> <span class="k">solid</span><span class="p">;</span>
+            <span class="o">-</span><span class="n">moz</span><span class="o">-</span><span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">4px</span><span class="p">;</span>
+            <span class="k">border</span><span class="o">-</span><span class="n">radius</span><span class="o">:</span> <span class="m">4px</span><span class="p">;</span>
+            <span class="k">width</span><span class="o">:</span> <span class="m">100</span><span class="o">%</span><span class="p">;</span>
+            <span class="k">padding</span><span class="o">:</span> <span class="m">0px</span><span class="p">;</span>
+            <span class="k">margin</span><span class="o">:</span> <span class="m">5px</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nc">.box</span> <span class="nt">div</span> <span class="p">{</span>
+            <span class="k">border-color</span><span class="o">:</span> <span class="n">grey</span><span class="p">;</span>
+            <span class="k">height</span><span class="o">:</span> <span class="m">300px</span><span class="p">;</span>
+            <span class="k">overflow</span><span class="o">:</span> <span class="k">auto</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nc">.box</span> <span class="nt">input</span> <span class="p">{</span>
+            <span class="k">height</span><span class="o">:</span> <span class="m">30px</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nt">h1</span> <span class="p">{</span>
+            <span class="k">margin-left</span><span class="o">:</span> <span class="m">30px</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="nt">body</span> <span class="p">{</span>
+            <span class="k">background-color</span><span class="o">:</span> <span class="m">#F0F0F0</span><span class="p">;</span>
+            <span class="k">font-family</span><span class="o">:</span> <span class="s2">&quot;Arial&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+    <span class="nt">&lt;/style&gt;</span>
+<span class="nt">&lt;/head&gt;&lt;body</span> <span class="na">lang=</span><span class="s">&quot;en&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;h1&gt;</span>SockJS, Redis, Node.js Tutorial<span class="nt">&lt;/h1&gt;</span>
+
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;first&quot;</span> <span class="na">class=</span><span class="s">&quot;box&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;div&gt;&lt;/div&gt;</span>
+    <span class="nt">&lt;form&gt;&lt;input</span> <span class="na">autocomplete=</span><span class="s">&quot;off&quot;</span><span class="nt">&gt;&lt;/input&gt;&lt;/form&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+
+<span class="nt">&lt;script&gt;</span>
+    <span class="kd">var</span> <span class="nx">sockjs_url</span> <span class="o">=</span> <span class="s1">&#39;/chat&#39;</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">sockjs</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">SockJS</span><span class="p">(</span><span class="nx">sockjs_url</span><span class="p">);</span>
+
+    <span class="kd">var</span> <span class="nx">userid</span> <span class="o">=</span> <span class="s1">&#39;guest&#39;</span> <span class="o">+</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">().</span><span class="nx">getSeconds</span><span class="p">();</span>
+    <span class="kd">var</span> <span class="nx">div</span>  <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#first div&#39;</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">inp</span>  <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#first input&#39;</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">form</span> <span class="o">=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#first form&#39;</span><span class="p">);</span>
+
+    <span class="kd">var</span> <span class="nx">print</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">message</span><span class="p">){</span>
+        <span class="nx">div</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;code&gt;&quot;</span><span class="p">).</span><span class="nx">text</span><span class="p">(</span><span class="nx">message</span><span class="p">));</span>
+        <span class="nx">div</span><span class="p">.</span><span class="nx">append</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;&lt;br&gt;&quot;</span><span class="p">));</span>
+        <span class="nx">div</span><span class="p">.</span><span class="nx">scrollTop</span><span class="p">(</span><span class="nx">div</span><span class="p">.</span><span class="nx">scrollTop</span><span class="p">()</span><span class="o">+</span><span class="mi">10000</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nx">sockjs</span><span class="p">.</span><span class="nx">onopen</span>    <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>  <span class="p">{</span><span class="nx">print</span><span class="p">(</span><span class="s1">&#39;Connected.&#39;</span><span class="p">);};</span>
+    <span class="nx">sockjs</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span><span class="nx">print</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">data</span><span class="p">);};</span>
+    <span class="nx">sockjs</span><span class="p">.</span><span class="nx">onclose</span>   <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>  <span class="p">{</span><span class="nx">print</span><span class="p">(</span><span class="s1">&#39;Closing Connection.&#39;</span><span class="p">);};</span>
+
+    <span class="nx">form</span><span class="p">.</span><span class="nx">submit</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">print</span><span class="p">(</span><span class="s1">&#39;Sending to server...&#39;</span><span class="p">);</span>
+        <span class="nx">sockjs</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">userid</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nx">inp</span><span class="p">.</span><span class="nx">val</span><span class="p">());</span>
+        <span class="nx">inp</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+        <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+    <span class="p">});</span>
+
+<span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;&lt;/html&gt;</span>
+</pre></div>
+<p>The SockJS part that we are interested in is the three lines below:</p>
+<div class="highlight"><pre><span class="nx">sockjs</span><span class="p">.</span><span class="nx">onopen</span>    <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>  <span class="p">{</span><span class="nx">print</span><span class="p">(</span><span class="s1">&#39;Connected.&#39;</span><span class="p">);};</span>
+<span class="nx">sockjs</span><span class="p">.</span><span class="nx">onmessage</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span><span class="nx">print</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">data</span><span class="p">);};</span>
+<span class="nx">sockjs</span><span class="p">.</span><span class="nx">onclose</span>   <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>  <span class="p">{</span><span class="nx">print</span><span class="p">(</span><span class="s1">&#39;Closing Connection.&#39;</span><span class="p">);};</span>
+</pre></div>
+<p>These are three events that SockJS will emit during the lifetime of the connection. When the connection is first established between the SockJS browser client and the Node.js server, it will trigger the <code>sockjs.onopen</code> function. Any messages sent from the server to the browser during this connection will trigger the <code>sockjs.onmessage</code> function, which we simply ask Javascript to print to our browser. Finally, when the connection is closed, we will trigger the <code>sockjs.onclose</code> function.</p>
+<p>The last piece to discuss is sending data from the browser back to the server. This work is done in this function:</p>
+<div class="highlight"><pre><span class="nx">form</span><span class="p">.</span><span class="nx">submit</span><span class="p">(</span><span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">print</span><span class="p">(</span><span class="s1">&#39;Sending to server...&#39;</span><span class="p">);</span>
+    <span class="nx">sockjs</span><span class="p">.</span><span class="nx">send</span><span class="p">(</span><span class="nx">userid</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nx">inp</span><span class="p">.</span><span class="nx">val</span><span class="p">());</span>
+    <span class="nx">inp</span><span class="p">.</span><span class="nx">val</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">);</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+<p>We simply call <code>sockjs.send(&quot;some message here&quot;)</code> in order to send data back to Node.js. In our case, we send a variable called userid which we simply define as a &quot;guest&quot; string plus a random number using the current time in seconds. We add this to the form's input value to complete the message.</p>
+<p>Now for the fun part. Start our node.js server by entering the command into your terminal:</p>
+<div class="highlight"><pre><span class="nx">$</span> <span class="nx">node</span> <span class="nx">server</span><span class="p">.</span><span class="nx">js</span>
+</pre></div>
+<p>Open up two browsers and navigate to <a class="reference external" href="http://localhost:9001">http://localhost:9001</a>. When you type in a message from one browser, the second browser will receive the message almost instantaneously!</p>
+<p>That's it. We have just made a real-time web application that can utilize a two-way communication link between the server and browser. I think that's pretty cool. This is the future of the web and just as we moved from static HTML pages to dynamic database driven websites, we will move towards real-time web applications.</p>
+<p>In the future, I will make another post describing how to put everything together and deploy using Nginx and either Flask or Django as the main web framework with node.js only handling the WebSockets section of our website.</p>
+<p>You can view the source code on <a class="reference external" href="https://github.com/jinzhangg/sockjs-tutorial">GitHub</a>.</p>
+
+
+		<div id="article_meta">
+								</div>
+	</article>
+
+	<footer>
+		<a href="http://localhost:8000/" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	
+	</section>
+
+	</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/style.css">
+	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
+	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
+	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/pygments.css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata|Roboto:400,300' rel='stylesheet' type='text/css'>
+
+	<link href="http://localhost:8000/" type="application/atom+xml" rel="alternate" title="Jin Zhang ATOM Feed" />
+	
+	
+			<title>Jin Zhang</title>
+		<meta charset="utf-8" />
+	</head>
+<body>
+	<section id="sidebar">
+		<figure id="user_logo">
+            <a href="http://localhost:8000"><div class="logo">&nbsp;</div></a>
+		</figure>
+
+		<div class="user_meta">
+            <h1 id="user"><a href="http://localhost:8000" class="">Jin Zhang</a></h1>
+			<h2></h2>
+						<p class="bio">Site under construction</p>
+						<ul>
+																			<li><a href="http://localhost:8000/pages/about.html">About</a></li>
+											<li><a href="http://localhost:8000/pages/contact.html">Contact</a></li>
+																		<li><a href="http://github.com/jinzhangg">Github</a></li>
+							</ul>
+		</div>
+		<footer>
+			<address>
+			</address>
+		</footer>
+	</section>
+
+	<section id="posts">
+			<header>
+		<h1>Jin Zhang's blog</h1>
+		<h3>Posted Sun 07 April 2013</h3>
+	</header>
+	<article>
+		<h1 id="title">
+			<a href="http://localhost:8000/posts/2013/deploying-django-on-nginx-and-uwsgi/" rel="bookmark"
+				title="Permalink to Deploying Django on Nginx and uWSGI">Deploying Django on Nginx and uWSGI</a>
+		</h1>
+		<p>Nginx and uWSGI has been growing in popularity in the Django community due to <a class="reference external" href="http://nichol.as/benchmark-of-python-web-servers">benchmarks</a> showing them to be faster then the standard Apache or Gunicorn setup. I recently went through the process of setting up a fresh VPS with this setup and decided to document my process here.</p>
+<p>I will be using Ubuntu 12.04 x64 Server edition. First let's install the packages we will need for this project.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">update</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">upgrade</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">build</span><span class="o">-</span><span class="n">essential</span> <span class="n">python</span><span class="o">-</span><span class="n">dev</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">pip</span> <span class="n">git</span>
+<span class="c"># Required for uWSGI</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">libxml2</span><span class="o">-</span><span class="n">dev</span>
+<span class="c"># Install nginx and uWSGI</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">nginx</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">virtualenv</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">uwsgi</span>
+</pre></div>
+<p>We will use Upstart to automatically start up uWSGI on restarts. Create the file <code>/etc/init/uwsgi.conf</code> and insert:</p>
+<div class="highlight"><pre><span class="n">description</span>     <span class="s">&quot;uWSGI Emperor&quot;</span>
+
+<span class="n">start</span> <span class="n">on</span> <span class="n">runlevel</span> <span class="p">[</span><span class="mi">2345</span><span class="p">]</span>
+<span class="n">stop</span> <span class="n">on</span> <span class="n">runlevel</span> <span class="p">[</span><span class="mo">06</span><span class="p">]</span>
+
+<span class="n">respawn</span>
+
+<span class="n">env</span> <span class="n">LOGTO</span><span class="o">=/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">uwsgi</span><span class="o">/</span><span class="n">emperor</span><span class="o">.</span><span class="n">log</span>
+<span class="n">env</span> <span class="n">BINPATH</span><span class="o">=/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">uwsgi</span>
+
+<span class="k">exec</span> <span class="err">$</span><span class="n">BINPATH</span> <span class="o">--</span><span class="n">master</span> <span class="o">--</span><span class="n">emperor</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">uwsgi</span><span class="o">/</span><span class="n">apps</span><span class="o">-</span><span class="n">enabled</span> <span class="o">--</span><span class="n">die</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">term</span> <span class="o">--</span><span class="n">uid</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span> <span class="o">--</span><span class="n">gid</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span> <span class="o">--</span><span class="n">logto</span> <span class="err">$</span><span class="n">LOGTO</span>
+</pre></div>
+<p>Nginx and uwsgi will be running as user www-data and group www-data so we need to give them permissions to our web and logs directory. I will place these at <code>/home/web/www</code> and <code>/home/web/logs</code>. First we will add our user <code>web</code> to the www-group.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">sudo</span> <span class="n">adduser</span> <span class="n">web</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span>
+<span class="err">$</span> <span class="n">mkdir</span> <span class="n">www</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">chgrp</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span>
+<span class="c"># Ensure future file additions inherit the same permissions</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">chmod</span> <span class="n">g</span><span class="o">+</span><span class="n">rwxs</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span>
+<span class="err">$</span> <span class="n">mkdir</span> <span class="n">logs</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">chgrp</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">logs</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">chmod</span> <span class="n">g</span><span class="o">+</span><span class="n">rwxs</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">logs</span>
+<span class="err">$</span> <span class="n">mkdir</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">uwsgi</span>
+</pre></div>
+<p>Create a directory structure similar to the one below to hold our project. The config directory will hold our nginx and uwsgi configs for this specific website. The django directory holds our django project files. The logs directory contains the logs specific for the website.com site and the venv contains our virtual environment files.</p>
+<div class="highlight"><pre><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span>
+<span class="o">---------------------</span> <span class="n">config</span><span class="o">/</span>
+<span class="o">---------------------</span> <span class="n">django</span><span class="o">/</span>
+<span class="o">---------------------</span> <span class="n">logs</span><span class="o">/</span>
+<span class="o">---------------------</span> <span class="n">venv</span><span class="o">/</span>
+</pre></div>
+<p>Now create our uWSGI config file in <code>/website.com/config/website.ini</code></p>
+<div class="highlight"><pre><span class="p">[</span><span class="n">uwsgi</span><span class="p">]</span>
+<span class="p">;</span> <span class="n">define</span> <span class="n">variables</span> <span class="n">to</span> <span class="n">use</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">script</span>
+<span class="n">project</span> <span class="o">=</span> <span class="n">django</span>
+<span class="n">base_dir</span> <span class="o">=</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+<span class="n">uid</span> <span class="o">=</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span>
+<span class="n">gid</span> <span class="o">=</span> <span class="n">www</span><span class="o">-</span><span class="n">data</span>
+<span class="p">;</span> <span class="n">process</span> <span class="n">name</span> <span class="k">for</span> <span class="n">easy</span> <span class="n">identification</span> <span class="ow">in</span> <span class="n">top</span>
+<span class="n">procname</span> <span class="o">=</span> <span class="o">%</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+<span class="p">;</span> <span class="n">number</span> <span class="n">of</span> <span class="n">worker</span> <span class="n">processes</span>
+<span class="n">processes</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="p">;</span> <span class="n">project</span><span class="o">-</span><span class="n">level</span> <span class="n">logging</span> <span class="n">to</span> <span class="n">the</span> <span class="n">logs</span><span class="o">/</span> <span class="n">folder</span>
+<span class="n">logto</span> <span class="o">=</span> <span class="o">%</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">uwsgi</span><span class="o">.</span><span class="n">log</span>
+<span class="p">;</span> <span class="n">django</span> <span class="o">&gt;=</span> <span class="mf">1.4</span> <span class="n">project</span>
+<span class="n">chdir</span> <span class="o">=</span> <span class="o">%</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span><span class="o">/%</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+<span class="n">module</span> <span class="o">=</span> <span class="o">%</span><span class="p">(</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">wsgi</span>
+<span class="p">;</span> <span class="n">add</span> <span class="n">virtual</span> <span class="n">environment</span> <span class="n">to</span> <span class="n">path</span>
+<span class="n">virtualenv</span> <span class="o">=</span> <span class="o">%</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span><span class="o">/</span><span class="n">venv</span>
+<span class="p">;</span> <span class="n">unix</span> <span class="n">socket</span> <span class="p">(</span><span class="n">referenced</span> <span class="ow">in</span> <span class="n">nginx</span> <span class="n">configuration</span><span class="p">)</span>
+<span class="n">socket</span> <span class="o">=</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">django</span><span class="o">.</span><span class="n">sock</span>
+<span class="n">chmod</span><span class="o">-</span><span class="n">socket</span> <span class="o">=</span> <span class="mi">666</span>
+<span class="p">;</span> <span class="n">run</span> <span class="n">master</span> <span class="n">process</span> <span class="k">as</span> <span class="n">root</span>
+<span class="n">master</span> <span class="o">=</span> <span class="n">true</span>
+<span class="n">master</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">=</span> <span class="n">true</span>
+</pre></div>
+<p>Also create our nginx config file in <code>/website.com/config/website.conf</code></p>
+<div class="highlight"><pre><span class="n">server</span> <span class="p">{</span>
+    <span class="n">listen</span>       <span class="mi">80</span><span class="p">;</span>
+    <span class="n">server_name</span>  <span class="n">website</span><span class="o">.</span><span class="n">com</span> <span class="n">www</span><span class="o">.</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="p">;</span>
+
+    <span class="n">root</span>        <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="p">;</span>
+    <span class="n">access_log</span>  <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">nginx_access</span><span class="o">.</span><span class="n">log</span><span class="p">;</span>
+    <span class="n">error_log</span>   <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">logs</span><span class="o">/</span><span class="n">nginx_error</span><span class="o">.</span><span class="n">log</span><span class="p">;</span>
+
+    <span class="n">location</span> <span class="o">/</span><span class="n">static</span><span class="o">/</span> <span class="p">{</span>
+    <span class="n">alias</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">django</span><span class="o">/</span><span class="n">django</span><span class="o">/</span><span class="n">static</span><span class="o">/</span><span class="p">;</span>
+    <span class="n">expires</span> <span class="mi">30</span><span class="n">d</span><span class="p">;</span>
+    <span class="n">access_log</span> <span class="n">off</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="n">location</span> <span class="o">/</span> <span class="p">{</span>
+        <span class="n">include</span> <span class="n">uwsgi_params</span><span class="p">;</span>
+        <span class="n">uwsgi_pass</span> <span class="n">unix</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">django</span><span class="o">.</span><span class="n">sock</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+<p>Now we need to enable our site and to do that we simply link it to the directory nginx and uWSGI are searching for our sites.</p>
+<div class="highlight"><pre><span class="c"># Create the directory to hold our uwsgi active apps</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">uwsgi</span><span class="o">/</span><span class="n">apps</span><span class="o">-</span><span class="n">enabled</span>
+<span class="c"># uWSGI linking</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">ini</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">uwsgi</span><span class="o">/</span><span class="n">apps</span><span class="o">-</span><span class="n">enabled</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">ini</span>
+<span class="c"># nginx linking</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">config</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">conf</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">nginx</span><span class="o">/</span><span class="n">sites</span><span class="o">-</span><span class="n">enabled</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">conf</span>
+</pre></div>
+<p>Restart nginx and uwsgi.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">sudo</span> <span class="n">service</span> <span class="n">nginx</span> <span class="n">restart</span>
+<span class="err">$</span> <span class="n">sudo</span> <span class="n">service</span> <span class="n">uwsgi</span> <span class="n">restart</span>
+</pre></div>
+<p>If you get an error about server_names_hash_bucket_size, this means our server name structure is a bit long for nginx. To fix this, simply uncomment the line below in <code>/etc/nginx/nginx.conf</code></p>
+<div class="highlight"><pre><span class="n">Restarting</span> <span class="n">nginx</span><span class="p">:</span> <span class="n">nginx</span><span class="p">:</span> <span class="p">[</span><span class="n">emerg</span><span class="p">]</span> <span class="n">could</span> <span class="ow">not</span> <span class="n">build</span> <span class="n">the</span> <span class="n">server_names_hash</span><span class="p">,</span> <span class="n">you</span> <span class="n">should</span> <span class="n">increase</span> <span class="n">server_names_hash_bucket_size</span><span class="p">:</span> <span class="mi">32</span>
+<span class="c">#</span>
+<span class="c"># At /etc/nginx/nginx.conf, uncomment the line below then retry the nginx restart:</span>
+<span class="n">server_names_hash_bucket_size</span> <span class="mi">64</span><span class="p">;</span>
+</pre></div>
+<p>Next we will create a empty Django project to test our server.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">cd</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">web</span><span class="o">/</span><span class="n">www</span><span class="o">/</span><span class="n">website</span><span class="o">.</span><span class="n">com</span>
+<span class="c"># Create the virtualenv</span>
+<span class="err">$</span> <span class="n">virtualenv</span> <span class="n">venv</span> <span class="o">--</span><span class="n">distribute</span>
+<span class="err">$</span> <span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="c"># Now lets create our Django project</span>
+<span class="err">$</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">django</span>
+<span class="err">$</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">django</span><span class="o">-</span><span class="n">admin</span><span class="o">.</span><span class="n">py</span> <span class="n">startproject</span> <span class="n">django</span>
+</pre></div>
+<p>Now browse to your server address and you should see the Django welcome page. Congratulations, you have just deployed a production ready Django project on nginx and uWSGI!</p>
+
+
+		<div id="article_meta">
+								</div>
+	</article>
+
+	<footer>
+		<a href="http://localhost:8000/" class="button_accent">&larr;&nbsp;&nbsp;&nbsp;Back to blog</a>
+	</footer>
+
+	
+	</section>
+
+	</body>
+</html>
