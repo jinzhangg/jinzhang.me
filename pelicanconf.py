@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 AUTHOR = u'Jin Zhang'
 SITENAME = u'Jin Zhang'
-SITEURL = 'http://jinzhangg.github.io'
+SITEURL = 'http://localhost:8000'
 
 TIMEZONE = 'America/Los_Angeles'
 
@@ -30,4 +30,11 @@ DEFAULT_PAGINATION = 10
 
 THEME = 'pelican-svbtle'
 
-AUTHOR_BIO = 'Python, Django, Flask Developer'
+# AUTHOR_BIO = 'Python, Django, Flask Developer'
+AUTHOR_BIO = 'Site under construction'
+SUMMARY_MAX_LENGTH = 100
+
+FILES_TO_COPY = (('CNAME', 'CNAME'),)
+
+ARTICLE_URL = 'posts/{date:%Y}/{slug}/'
+ARTICLE_SAVE_AS = 'posts/{date:%Y}/{slug}/index.html'
