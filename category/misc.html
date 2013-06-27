@@ -1,72 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/style.css">
-	<!--<link rel="stylesheet/less" type="text/css" href="/theme/css/style.less">-->
-	<!--<script src="/theme/js/less.js" type="text/javascript"></script>-->
-	<link rel="stylesheet" type="text/css" href="http://localhost:8000/theme/css/pygments.css">
-	<link href='http://fonts.googleapis.com/css?family=Open+Sans:800,400,300|Inconsolata|Roboto:400,300' rel='stylesheet' type='text/css'>
+        <meta charset="utf-8">
+        <title>A Pelican Blog - misc</title>
+        <link rel="stylesheet" href="/theme/css/main.css">
+                <link href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="A Pelican Blog Atom Feed" />
+                
+        <!--[if IE]>
+            <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
 
-	<link href="http://localhost:8000/" type="application/atom+xml" rel="alternate" title="Jin Zhang ATOM Feed" />
-	
-	
-			<title>Jin Zhang</title>
-		<meta charset="utf-8" />
-	</head>
-<body>
-	<section id="sidebar">
-		<figure id="user_logo">
-            <a href="http://localhost:8000"><div class="logo">&nbsp;</div></a>
-		</figure>
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="/">A Pelican Blog </a></h1>
+                <nav><ul>
+                                                    <li><a href="/pages/about.html">About</a></li>
+                                    <li><a href="/pages/contact.html">Contact</a></li>
+                                                                    <li class="active"><a href="/category/misc.html">misc</a></li>
+                                                </ul></nav>
+        </header><!-- /#banner -->
+                
+            
 
-		<div class="user_meta">
-            <h1 id="user"><a href="http://localhost:8000" class="">Jin Zhang</a></h1>
-			<h2></h2>
-						<p class="bio">Python, Django, Flask Developer</p>
-						<ul>
-																			<li><a href="http://localhost:8000/pages/about.html">About</a></li>
-											<li><a href="http://localhost:8000/pages/contact.html">Contact</a></li>
-																		<li><a href="http://github.com/jinzhangg">Github</a></li>
-							</ul>
-		</div>
-		<footer>
-			<address>
-				Powered by <a href="http://pelican.notmyidea.org/">Pelican</a>,
-		                theme by <a href="https://github.com/wting/pelican-svbtle">wting</a>.
-			</address>
-		</footer>
-	</section>
+                            <aside id="featured" class="body">
+                <article>
+                    <h1 class="entry-title"><a href="/installing-django-on-heroku-with-postgresql.html">Installing Django on Heroku with Postgresql</a></h1> 
+                    <footer class="post-info">
+        <abbr class="published" title="2013-04-06T00:00:00">
+                Sat 06 April 2013
+        </abbr>
 
-	<section id="posts">
-			<header>
-		<h1>Jin Zhang's blog</h1>
-		<h3>
-			<script type="text/javascript">
-				var currentDate = new Date();
-				var day = currentDate.getDate();
-				var monthNames = [ "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sep", "Oct", "Nov", "Dec" ];
-				var month = monthNames[currentDate.getMonth()].toUpperCase();
-				var year = currentDate.getFullYear();
-				document.write(month + " " + day + ", " + year);
-			</script>
-		</h3>
-	</header>
+                <address class="vcard author">
+                By <a class="url fn" href="/author/jin-zhang.html">Jin Zhang</a>
+        </address>
+        <p>In <a href="/category/misc.html">misc</a>. </p>
 
-	<dl>
-		<ol>
-							<li>
-					<h1 class="title">
-						<a href="http://localhost:8000/installing-django-on-heroku-with-postgresql.html" rel="bookmark" title="Permalink to Installing Django on Heroku with Postgresql">Installing Django on Heroku with Postgresql</a>
-					</h1>
-					<abbr class="published" title="2013-04-06T00:00:00">Sat 06 April 2013</abbr>
-				<div class="entry-content"> <p>We will set up a basic Django site on the popular hosting platform <a class="reference external" href="http://heroku.com">Heroku</a>. The main benefit of Heroku is allowing developers to focus on writing code that differeniates their product and leaving the system administrator tasks to Heroku. They offer a free plan which is sufficient for small projects ...</p> </div>
-				</li>
-					</ol>
-	</dl>
+</footer><!-- /.post-info --><p>We will set up a basic Django site on the popular hosting platform <a class="reference external" href="http://heroku.com">Heroku</a>. The main benefit of Heroku is allowing developers to focus on writing code that differeniates their product and leaving the system administrator tasks to Heroku. They offer a free plan which is sufficient for small projects and personal blogs. The downside is that they do not allow custom domains under the free plan, instead you will be given a subdomain under heroku.com.</p>
+<p>The following tutorial assumes you are running Linux Ubuntu or derivatives of it. First sign up for a free <a class="reference external" href="http://heroku.com">Heroku</a> account and install the Heroku Toolbelt. The toolbelt allows us to run heroku's terminal commands and also installs the git revision control program.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">wget</span> <span class="o">-</span><span class="n">qO</span><span class="o">-</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">toolbelt</span><span class="o">.</span><span class="n">heroku</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">install</span><span class="o">-</span><span class="n">ubuntu</span><span class="o">.</span><span class="n">sh</span> <span class="o">|</span> <span class="n">sh</span>
+</pre></div>
+<p>Next let's install python pip and virtualenv. A virtualenv allows us to keep project dependencies separate from other projects.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">pip</span>
+<span class="err">$</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">virtualenv</span>
+</pre></div>
+<p>Create a directory called django_heroku to hold our django project and inside create a virtualenv called venv.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">mkdir</span> <span class="n">django_heroku</span>
+<span class="err">$</span> <span class="n">cd</span> <span class="n">django_heroku</span>
+<span class="err">$</span> <span class="n">virtualenv</span> <span class="n">venv</span> <span class="o">--</span><span class="n">distribute</span>
+</pre></div>
+<p>Now we need to activate the virtualenv.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+</pre></div>
+<p>We can tell that our virtualenv is active by the prefix applied to our shell <code>(venv)</code>. Now let's install the dependencies we will need for the project. Psycopg2 is the python postgres database driver and dj-database-url allows us to use database URLs to configure our Django project which we will need for Heroku.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">django</span> <span class="n">psycopg2</span> <span class="n">dj</span><span class="o">-</span><span class="n">database</span><span class="o">-</span><span class="n">url</span>
+</pre></div>
+<p>Now create a new Django project called django_heroku. The period . at the end tells Django to start our new project in the current directory.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">django</span><span class="o">-</span><span class="n">admin</span><span class="o">.</span><span class="n">py</span> <span class="n">startproject</span> <span class="n">django_heroku</span> <span class="o">.</span>
+</pre></div>
+<p>Test that our django project works with the built-in development server.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">python</span> <span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">runserver</span>
 
-	<p class="paginator">
-		</p>
-	</section>
+<span class="n">Validating</span> <span class="n">models</span><span class="o">...</span>
 
-	</body>
+<span class="mi">0</span> <span class="n">errors</span> <span class="n">found</span>
+<span class="n">March</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">2013</span> <span class="o">-</span> <span class="mi">13</span><span class="p">:</span><span class="mi">45</span><span class="p">:</span><span class="mo">04</span>
+<span class="n">Django</span> <span class="n">version</span> <span class="mf">1.5</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span> <span class="n">using</span> <span class="n">settings</span> <span class="s">&#39;django_heroku.settings&#39;</span>
+<span class="n">Development</span> <span class="n">server</span> <span class="ow">is</span> <span class="n">running</span> <span class="n">at</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="mf">127.0</span><span class="o">.</span><span class="mf">0.1</span><span class="p">:</span><span class="mi">8000</span><span class="o">/</span>
+<span class="n">Quit</span> <span class="n">the</span> <span class="n">server</span> <span class="k">with</span> <span class="n">CONTROL</span><span class="o">-</span><span class="n">C</span><span class="o">.</span>
+</pre></div>
+<p>Point your browser to <a class="reference external" href="http://127.0.0.1:8000">http://127.0.0.1:8000</a> to see the Django welcome page. Now that our website is working, let's deploy it to heroku. Create a requirements.txt file to tell Heroku what dependencies we are using.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">pip</span> <span class="n">freeze</span> <span class="o">&gt;</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="err">$</span> <span class="n">cat</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+
+<span class="n">Django</span><span class="o">==</span><span class="mf">1.5</span><span class="o">.</span><span class="mi">1</span>
+<span class="n">argparse</span><span class="o">==</span><span class="mf">1.2</span><span class="o">.</span><span class="mi">1</span>
+<span class="n">distribute</span><span class="o">==</span><span class="mf">0.6</span><span class="o">.</span><span class="mi">24</span>
+<span class="n">dj</span><span class="o">-</span><span class="n">database</span><span class="o">-</span><span class="n">url</span><span class="o">==</span><span class="mf">0.2</span><span class="o">.</span><span class="mi">1</span>
+<span class="n">psycopg2</span><span class="o">==</span><span class="mf">2.4</span><span class="o">.</span><span class="mi">6</span>
+<span class="n">wsgiref</span><span class="o">==</span><span class="mf">0.1</span><span class="o">.</span><span class="mi">2</span>
+</pre></div>
+<p>Next we will need to configure settings.py to work with Heroku's database setting. Open up the settings.py file and add the following code to the bottom of the file.</p>
+<div class="highlight"><pre><span class="c"># Set Django&#39;s database settings to Heroku&#39;s environment variable DATABASE_URL or</span>
+<span class="c"># default to Sqlite if unable to find</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">dj_database_url</span>
+<span class="n">basedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+<span class="n">DATABASES</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dj_database_url</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+    <span class="s">&quot;DATABASE_URL&quot;</span><span class="p">,</span> <span class="s">&quot;sqlite:///&quot;</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">basedir</span><span class="p">,</span> <span class="s">&quot;database.db&quot;</span><span class="p">)))</span>
+</pre></div>
+<p>We need to create two additional files, Procfile and .gitignore, for our project. The file directory should look similar to below:</p>
+<div class="highlight"><pre><span class="o">/</span><span class="n">django_heroku</span><span class="o">/</span>
+<span class="o">--</span> <span class="n">django_heroku</span><span class="o">/</span>
+<span class="o">-----</span> <span class="n">__init__</span><span class="o">.</span><span class="n">py</span>
+<span class="o">-----</span> <span class="n">settings</span><span class="o">.</span><span class="n">py</span>
+<span class="o">-----</span> <span class="n">urls</span><span class="o">.</span><span class="n">py</span>
+<span class="o">-----</span> <span class="n">wsgi</span><span class="o">.</span><span class="n">py</span>
+<span class="o">--</span> <span class="n">venv</span><span class="o">/</span>
+<span class="o">--</span> <span class="n">manage</span><span class="o">.</span><span class="n">py</span>
+<span class="o">--</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="o">--</span> <span class="o">.</span><span class="n">gitignore</span>
+<span class="o">--</span> <span class="n">Procfile</span>
+</pre></div>
+<p>Create a file called Procfile to declare how Heroku should launch our project.</p>
+<div class="highlight"><pre><span class="n">web</span><span class="p">:</span> <span class="n">python</span> <span class="n">manage</span><span class="o">.</span><span class="n">py</span> <span class="n">runserver</span> <span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="p">:</span><span class="err">$</span><span class="n">PORT</span> <span class="o">--</span><span class="n">noreload</span>
+</pre></div>
+<p>Create a file called .gitignore to tell git which files to ignore.</p>
+<div class="highlight"><pre><span class="o">*.</span><span class="n">py</span><span class="p">[</span><span class="n">cod</span><span class="p">]</span>
+<span class="c"># PyCharm</span>
+<span class="o">.</span><span class="n">idea</span>
+<span class="c"># Database</span>
+<span class="o">*.</span><span class="n">db</span>
+<span class="c"># Virtualenv</span>
+<span class="n">venv</span>
+</pre></div>
+<p>Commit our files to git. If this is your first time running git, you may need to set some global variables first.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">git</span> <span class="n">config</span> <span class="o">--</span><span class="k">global</span> <span class="n">user</span><span class="o">.</span><span class="n">name</span> <span class="s">&quot;John Doe&quot;</span>
+<span class="err">$</span> <span class="n">git</span> <span class="n">config</span> <span class="o">--</span><span class="k">global</span> <span class="n">user</span><span class="o">.</span><span class="n">email</span> <span class="n">johndoe</span><span class="nd">@example.com</span>
+</pre></div>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">git</span> <span class="n">init</span>
+<span class="err">$</span> <span class="n">git</span> <span class="n">add</span> <span class="o">.</span>
+<span class="err">$</span> <span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s">&#39;first commit&#39;</span>
+</pre></div>
+<p>Finally we are ready to deploy to Heroku.</p>
+<div class="highlight"><pre><span class="err">$</span> <span class="n">heroku</span> <span class="n">login</span>
+<span class="err">$</span> <span class="n">heroku</span> <span class="n">create</span>
+<span class="err">$</span> <span class="n">git</span> <span class="n">push</span> <span class="n">heroku</span> <span class="n">master</span>
+</pre></div>
+<p>If Heroku tells you to make a ssh key, create one and save it to the default location which should be similar to <code>/home/YOUR_USERNAME/.ssh/id_rsa</code></p>
+<p>Visit the URL that Heroku gave you and you should see the Django welcome page! Congratulations, you have just launched a working Django site to Heroku. Now grab a coffee and take a well deserved break.</p>
+                </article>
+                                                                </aside><!-- /#featured -->
+                                                </ol><!-- /#posts-list -->
+                        </section><!-- /#content -->
+                    <section id="extras" class="body">
+                                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+                            <li><a href="/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+                            
+                                                </ul>
+                </div><!-- /.social -->
+                </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Proudly powered by <a href="http://getpelican.com/">Pelican</a>, which takes great advantage of <a href="http://python.org">Python</a>.
+                </address><!-- /#about -->
+
+                <p>The theme is by <a href="http://coding.smashingmagazine.com/2009/08/04/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
+        </footer><!-- /#contentinfo -->
+
+</body>
 </html>
