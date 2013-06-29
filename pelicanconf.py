@@ -37,3 +37,5 @@ FILES_TO_COPY = (('CNAME', 'CNAME'),)
 
 ARTICLE_URL = 'posts/{date:%Y}/{slug}/'
 ARTICLE_SAVE_AS = 'posts/{date:%Y}/{slug}/index.html'
+PAGE_URL = '{slug}/'
+PAGE_SAVE_AS = '{slug}/index.html'
